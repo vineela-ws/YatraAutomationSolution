@@ -15,41 +15,22 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 public class YatraAutomationScript {
 
 	public static void main(String[] args) throws InterruptedException {
-		//Handle Browser Notifications
 		ChromeOptions chromeOptions= new ChromeOptions();
 		chromeOptions.addArguments("--disable-notifications");
 
-		//Launch the Browser
 		WebDriver wd = new ChromeDriver(chromeOptions);
 		WebDriverWait wait = new WebDriverWait(wd,Duration.ofSeconds(20));  //Synchronizing the WebDriver -->ExplicitWait
 		
-		//Load the Page for us
 		wd.get("https://www.yatra.com/");
-
-		//Maximize the Browser
 		wd.manage().window().maximize();
 		
-		//Check for the popup
-		By popUpLocator = By.xpath("(//div[contains(@class,'style_popup')])[1]");
-		try {
-		WebElement popUpElement = wait.until(ExpectedConditions.visibilityOfElementLocated(popUpLocator));
-		WebElement cross = popUpElement.findElement(By.xpath("(//img[@alt='cross'])[1]"));	
-		cross.click();
-		}catch(TimeoutException e) {
-			System.out.println("Popup not shown on the screen!!!");
-		}
+		closePopup(wait);
 		
-		By departureDateLocator = By.xpath("//div[@aria-label = 'Return Date inputbox'and@role='button']");
-		
-		WebElement departuredateButton = wait.until(ExpectedConditions.elementToBeClickable(departureDateLocator)); 
-		
-		departuredateButton.click();
+		clickOnDepartureDate(wait);
 		
 		WebElement currentMonthCalenderWebElement = selectTheMonthFromCalender(wait,0); //Current Month
 		WebElement nextMonthCalenderWebElement =selectTheMonthFromCalender(wait,1); //Current Month
-
-		
-		//Chaining of WebElement --> With the help of one WebElement we can find other WebElements
+	
 		Thread.sleep(3000);
 		String lowsetPriceForCurrentMonth = getMeLowestPrice(currentMonthCalenderWebElement);
 		String lowsetPriceForNextMonth = getMeLowestPrice(nextMonthCalenderWebElement);
@@ -62,6 +43,27 @@ public class YatraAutomationScript {
 	  }
 
 
+	private static void clickOnDepartureDate(WebDriverWait wait) {
+		By departureDateLocator = By.xpath("//div[@aria-label = 'Return Date inputbox'and@role='button']");
+		
+		WebElement departuredateButton = wait.until(ExpectedConditions.elementToBeClickable(departureDateLocator)); 
+		
+		departuredateButton.click();
+	}
+
+
+	private static void closePopup(WebDriverWait wait) {
+		By popUpLocator = By.xpath("(//div[contains(@class,'style_popup')])[1]");
+		try {
+		WebElement popUpElement = wait.until(ExpectedConditions.visibilityOfElementLocated(popUpLocator));
+		WebElement cross = popUpElement.findElement(By.xpath("(//img[@alt='cross'])[1]"));	
+		cross.click();
+		}catch(TimeoutException e) {
+			System.out.println("Popup not shown on the screen!!!");
+		}
+	}
+
+
 	private static String getMeLowestPrice(WebElement MonthWebElement) {
 		By priceLocator = By.xpath(".//span[contains(@class, 'custom-day-content')]");
 		List<WebElement> julyPriceList = MonthWebElement.findElements(priceLocator);
@@ -71,12 +73,9 @@ public class YatraAutomationScript {
 		WebElement priceElement = null;
 		
 		for(WebElement price : julyPriceList) {		
-			//Find the lowest price
 			String priceString = price.getText();
 			if(priceString.length()>0) {
 			priceString = priceString.replace("₹","").replace(",","");
-			
-			//Convert the String value to Integer
 			int priceInt = Integer.parseInt(priceString);
 			if(priceInt < lowestPrice) {
 				lowestPrice = priceInt;
@@ -85,7 +84,7 @@ public class YatraAutomationScript {
 		  }
 		}
 		WebElement dateElement = priceElement.findElement(By.xpath(".//../.."));
-		String result = dateElement.getAttribute("aria-label")+"....Price is RS"+lowestPrice;
+		String result = dateElement.getAttribute("aria-label")+"....Price is Rs" + lowestPrice;
 		return result;
 	}
 	
@@ -94,7 +93,6 @@ public class YatraAutomationScript {
 		By calenderMonthsLocator = By.xpath("//div[@class = 'react-datepicker__month-container']");
 		List<WebElement> calenderMonthsList = wait.until(ExpectedConditions.visibilityOfAllElementsLocatedBy(calenderMonthsLocator));
 		
-		//We want to focus on the current month
 		WebElement monthCalenderWebElement = calenderMonthsList.get(index);  //Current Month
 			
 		return monthCalenderWebElement;	
@@ -124,7 +122,8 @@ public class YatraAutomationScript {
 				else {
 					System.out.println("The lowest price for the two months is "+next);
 				}
-		    } catch (NumberFormatException e) {
+		    }
+		   catch (NumberFormatException e) {
 		        System.err.println("Error: Invalid input string for number conversion:");
 		    }
 	   }
